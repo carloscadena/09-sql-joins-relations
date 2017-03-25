@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = '';// TODO: Don't forget to set your own conString
+const conString = 'postgres://localhost:5432';// TODO: Don't forget to set your own conString
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -32,9 +32,8 @@ app.get('/new', function(request, response) {
 app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables
   // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
-  client.query(`SELECT
-                (join somehow)
-                ON (some other crap here)`)
+  client.query(`SELECT * FROM articles
+    INNER JOIN authors ON articles.author_id = authors.author_id;`)
   .then(function(result) {
     response.send(result.rows);
   })
@@ -45,17 +44,30 @@ app.get('/articles', function(request, response) {
 
 app.post('/articles', function(request, response) {
   client.query(
-  // TODO: Write a SQL query to insert a new ***author***, ON CONFLICT DO NOTHING
-  // TODO: Add author and "authorUrl" as data for the SQL query to interpolate
-    'Thing1',
-    [Thing2]
+    // TODO: Write a SQL query to insert a new ***author***, ON CONFLICT DO NOTHING
+    // TODO: Add author and "authorUrl" as data for the SQL query to interpolate
+    `INSERT INTO authors(author, "authorUrl")
+    VALUES ($1, $2) ON CONFLICT DO NOTHING;`,
+    [
+      request.body.author,
+      request.body.authorUrl
+    ]
   )
   .then(function() {
     // TODO: Write a SQL query to insert a new ***article***, using a sub-query to retrieve the author_id from the authors table
     // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
-      `Thing1`,
-      [Thing2]
+      `INSERT INTO
+      articles(author_id, title, category, "publishedOn", body)
+      SELECT author_id, $1, $2, $3, $4
+      FROM authors WHERE author = $5;`,
+      [
+        request.body.title,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body,
+        request.body.author
+      ]
     )
   })
   .then(function() {
