@@ -33,7 +33,8 @@ app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables
   // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
   client.query(`SELECT * FROM articles
-    INNER JOIN authors ON articles.author_id = authors.author_id;`)
+    INNER JOIN authors
+    ON articles.author_id = authors.author_id;`)
   .then(function(result) {
     response.send(result.rows);
   })
@@ -82,15 +83,33 @@ app.put('/articles/:id', function(request, response) {
   client.query(
   // TODO: Write a SQL query to update an ***author*** record
   // TODO: Add the required values from the request as data for the SQL query to interpolate
-    `Thing1`,
-    [Thing2]
+    `UPDATE authors
+    SET
+    author=$2, "authorUrl"=$3
+    WHERE author_id=$1;
+    `,
+    [
+      request.params.id,
+      request.body.author,
+      request.body.authorUrl
+    ]
   )
   .then(function() {
     // TODO: Write a SQL query to update an **article*** record
     // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
-      `Thing1`,
-      [Thing2]
+      `UPDATE articles
+      SET
+      title=$1, category=$2, "publishedOn"=$3, body=$4
+      WHERE author_id=$5;
+      `,
+      [
+        request.body.title,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body,
+        request.params.id
+      ]
     )
   })
   .then(function() {
