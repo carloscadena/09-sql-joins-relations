@@ -89,7 +89,7 @@ app.put('/articles/:id', function(request, response) {
     WHERE author_id=$1;
     `,
     [
-      request.params.id,
+      request.body.author_id,
       request.body.author,
       request.body.authorUrl
     ]
@@ -101,7 +101,7 @@ app.put('/articles/:id', function(request, response) {
       `UPDATE articles
       SET
       title=$1, category=$2, "publishedOn"=$3, body=$4
-      WHERE author_id=$5;
+      WHERE article_id=$5;
       `,
       [
         request.body.title,
